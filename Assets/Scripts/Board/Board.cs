@@ -139,21 +139,59 @@ public class Board
 
     internal void FillGapsWithNewItems()
     {
+        Dictionary<NormalItem.eNormalType, int> normalTypeCount = new Dictionary<NormalItem.eNormalType, int>();
+        for (int i = 0; i < 7; i++)
+        {
+            NormalItem.eNormalType normalType = (NormalItem.eNormalType)i;
+            normalTypeCount.Add(normalType, 0);
+        }
         for (int x = 0; x < boardSizeX; x++)
         {
             for (int y = 0; y < boardSizeY; y++)
             {
                 Cell cell = m_cells[x, y];
                 if (!cell.IsEmpty) continue;
-
                 NormalItem item = new NormalItem();
-
-                item.SetType(Utils.GetRandomNormalType());
+                List<NormalItem.eNormalType> expectType = new List<NormalItem.eNormalType>();
+                for (int i = 0; i < 7; i++)
+                {
+                    NormalItem.eNormalType normalType = (NormalItem.eNormalType)i;
+                    expectType.Add(normalType);
+                }
+                Cell left = cell.NeighbourLeft;
+                Cell right = cell.NeighbourRight;
+                Cell up = cell.NeighbourUp;
+                Cell bottom = cell.NeighbourBottom;
+                Cell[] cells = new Cell[4] { left, right, up, bottom };
+                for (int k = 0; k < 4; k++)
+                {
+                    if (cells[k] == null) continue;
+                    if (cells[k].IsEmpty) continue;
+                    NormalItem normalItem = cells[k].Item as NormalItem;
+                    if (expectType.Contains(normalItem.ItemType))
+                    {
+                        expectType.Remove(normalItem.ItemType);
+                    }
+                }
+                int min = int.MaxValue;
+                NormalItem.eNormalType itemType = NormalItem.eNormalType.TYPE_ONE;
+                foreach (var normalType in normalTypeCount)
+                {
+                    if (expectType.Contains(normalType.Key))
+                    {
+                        if (normalType.Value < min)
+                        {
+                            min = normalType.Value;
+                            itemType = normalType.Key;
+                        }
+                    }
+                }
+                item.SetType(itemType);
                 item.SetView();
                 item.SetViewRoot(m_root);
-
                 cell.Assign(item);
                 cell.ApplyItemPosition(true);
+                normalTypeCount[itemType] = min + 1;
             }
         }
     }
