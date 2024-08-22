@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static GameManager;
 
 public class GameManager : MonoBehaviour
 {
@@ -41,9 +42,8 @@ public class GameManager : MonoBehaviour
     private BoardController m_boardController;
 
     private UIMainManager m_uiMenu;
-
     private LevelCondition m_levelCondition;
-
+    private eLevelMode m_elevelMode;
     private GameObject m_cellBackground;
     private GameObject[] m_itemNormals;
 
@@ -104,7 +104,7 @@ public class GameManager : MonoBehaviour
     {
         m_boardController = new GameObject("BoardController").AddComponent<BoardController>();
         m_boardController.StartGame(this, m_gameSettings);
-
+        m_elevelMode = mode;
         if (mode == eLevelMode.MOVES)
         {
             m_levelCondition = this.gameObject.AddComponent<LevelMoves>();
@@ -117,7 +117,6 @@ public class GameManager : MonoBehaviour
         }
 
         m_levelCondition.ConditionCompleteEvent += GameOver;
-
         State = eStateGame.GAME_STARTED;
     }
 
@@ -154,6 +153,26 @@ public class GameManager : MonoBehaviour
             Destroy(m_levelCondition);
             m_levelCondition = null;
         }
+    }
+    public void Restart()
+    {
+        StartCoroutine(RestartCoroutine());
+    }
+    private IEnumerator RestartCoroutine()
+    {
+        while (m_boardController.IsBusy)
+        {
+            yield return new WaitForEndOfFrame();
+        }
+        ClearLevel();
+        if (m_levelCondition != null)
+        {
+            m_levelCondition.ConditionCompleteEvent -= GameOver;
+            Destroy(m_levelCondition);
+            m_levelCondition = null;
+        }
+        yield return new WaitForEndOfFrame();
+        LoadLevel(m_elevelMode);
     }
     public GameObject GetItemNormal(string path)
     {
