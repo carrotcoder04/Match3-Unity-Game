@@ -34,25 +34,44 @@ public class GameManager : MonoBehaviour
             StateChangedAction(m_state);
         }
     }
-
+    public static GameManager Instance { get; private set; }
 
     private GameSettings m_gameSettings;
-
-
+    private Reskin m_reskin;
     private BoardController m_boardController;
 
     private UIMainManager m_uiMenu;
 
     private LevelCondition m_levelCondition;
 
+    private GameObject m_cellBackground;
+    private GameObject[] m_itemNormals;
+
     private void Awake()
     {
         State = eStateGame.SETUP;
-
+        Instance = this;
         m_gameSettings = Resources.Load<GameSettings>(Constants.GAME_SETTINGS_PATH);
-
+        m_reskin = Resources.Load<Reskin>(Constants.SKIN_PATH);
         m_uiMenu = FindObjectOfType<UIMainManager>();
         m_uiMenu.Setup(this);
+        m_cellBackground = Resources.Load<GameObject>(Constants.PREFAB_CELL_BACKGROUND);
+        InitItemNormal();
+    }
+
+    private void InitItemNormal()
+    {
+        m_itemNormals = new GameObject[10];
+        string path = "prefabs/itemNormal0";
+        for (int i = 0; i < 7; i++)
+        {
+            m_itemNormals[i] = Resources.Load<GameObject>(path + (i + 1).ToString());
+            SpriteRenderer render = m_itemNormals[i].GetComponent<SpriteRenderer>();
+            render.sprite = m_reskin.Skins[i];
+        }
+        m_itemNormals[7] = Resources.Load<GameObject>(Constants.PREFAB_BONUS_BOMB);
+        m_itemNormals[8] = Resources.Load<GameObject>(Constants.PREFAB_BONUS_HORIZONTAL);
+        m_itemNormals[9] = Resources.Load<GameObject>(Constants.PREFAB_BONUS_VERTICAL);
     }
 
     void Start()
@@ -135,5 +154,24 @@ public class GameManager : MonoBehaviour
             Destroy(m_levelCondition);
             m_levelCondition = null;
         }
+    }
+    public GameObject GetItemNormal(string path)
+    {
+        switch (path)
+        {
+            case Constants.PREFAB_BONUS_BOMB:
+                return m_itemNormals[7];
+            case Constants.PREFAB_BONUS_HORIZONTAL:
+                return m_itemNormals[8];
+            case Constants.PREFAB_BONUS_VERTICAL:
+                return m_itemNormals[9];
+            default:
+                int index = path[path.Length - 1] - 49;
+                return m_itemNormals[index];
+        }
+    }
+    public GameObject GetCellBackGround()
+    {
+        return m_cellBackground;
     }
 }

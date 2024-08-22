@@ -18,8 +18,9 @@ public class Item
 
         if (!string.IsNullOrEmpty(prefabname))
         {
-            GameObject prefab = Resources.Load<GameObject>(prefabname);
-            if (prefab)
+            // GameObject prefab = Resources.Load<GameObject>(prefabname);
+            GameObject prefab = GameManager.Instance.GetItemNormal(prefabname);
+            if (prefab != null)
             {
                 View = GameObject.Instantiate(prefab).transform;
             }
